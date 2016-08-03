@@ -190,7 +190,7 @@
 #define AK8963_ADDRESS 0x0C   //  Address of magnetometer
 #endif
 
-#define Madgwick 1
+#define Madgwick 0
 
 #define AHRS true         // set to false for basic data read
 #define SerialDebug false   // set to true to get Serial output for debugging
@@ -271,15 +271,15 @@ Servo motor3;
 Servo motor4;
 #define motor4Pin 9
 
-#define MaxSpeed 1300
+#define MaxSpeed 1500
 #define MinSpeed 1000
-#define OffMotor 0
 short unsigned int motorsSpeed[4] = {0,0,0,0};
 bool constUpdated = false;
 bool motorsActivated = false;
 float yawConst = 0;
 float pitchConst = 0;
 float rollConst = 0;
+bool offMotors = false;
 
 void setup()
 {
@@ -509,7 +509,9 @@ void loop()
         case 2: updateMotorsSpeed(-1,speed,-1,-1);   if (SerialDebug) { Serial.print("Motor2 Done"); } break;
         case 3: updateMotorsSpeed(-1,-1,speed,-1);   if (SerialDebug) { Serial.print("Motor3 Done"); } break;
         case 4: updateMotorsSpeed(-1,-1,-1,speed);   if (SerialDebug) { Serial.print("Motor4 Done"); } break;
-        case 5: updateMotorsSpeed(speed,speed,speed,speed); 
+        case 5: updateMotorsSpeed(speed,speed,speed,speed);
+        case 6: offMotors = true;
+        case 7: offMotors = false;
         if(SerialDebug) { Serial.print("All Motor Done"); } break;
       }
       if(SerialDebug) {
@@ -519,7 +521,6 @@ void loop()
     }
 
     if (!motorsActivated) {
-      delay(3000);
       activateMotors();
     } else {
       writeToMotors();
@@ -534,10 +535,13 @@ void loop()
 }
 
 void activateMotors() {
-  for (int i = 0; i <= 1000;i+=100) {
-    delay(1000);
-    updateMotorsSpeed(i,-1,-1,-1);
-    writeToMotors();
+  delay(1000);
+  for (int i = 0; i <= 1000;i+=10) {
+    delay(50);
+    if (i == 700) delay(1000);
+    if (i == 800) delay(1000);
+    updateMotorsSpeed(i,i,i,i);
+    writeToMotorsWithoutCorrection();
   }
   motorsActivated = true;
 }
@@ -562,11 +566,33 @@ void updateMotorsSpeed(int motor1, int motor2, int motor3, int motor4) {
   }
 }
 
-void writeToMotors() {
+void writeToMotorsWithoutCorrection() {
     motor1.writeMicroseconds(motorsSpeed[0]);
     motor2.writeMicroseconds(motorsSpeed[1]);
     motor3.writeMicroseconds(motorsSpeed[2]);
     motor4.writeMicroseconds(motorsSpeed[3]);
+}
+
+void writeToMotors() {
+  unsigned short int m1 = motorsSpeed[0];
+  unsigned short int m2 = motorsSpeed[1];
+  unsigned short int m3 = motorsSpeed[2];
+  unsigned short int m4 = motorsSpeed[3];
+  if (m1 < MinSpeed) m1 = MinSpeed;
+  if (m2 < MinSpeed) m2 = MinSpeed;
+  if (m3 < MinSpeed) m3 = MinSpeed;
+  if (m4 < MinSpeed) m4 = MinSpeed;
+  if (!offMotors) {
+    motor1.writeMicroseconds(m1 - pitch + roll);
+    motor2.writeMicroseconds(m2 - pitch - roll);
+    motor3.writeMicroseconds(m3 + pitch - roll);
+    motor4.writeMicroseconds(m4 + pitch + roll);
+  } else {
+    motor1.writeMicroseconds(0);
+    motor2.writeMicroseconds(0);
+    motor3.writeMicroseconds(0);
+    motor4.writeMicroseconds(0);
+  }
 }
 
 //===================================================================================================================
