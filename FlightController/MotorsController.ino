@@ -34,7 +34,7 @@ void ActivateMotors() {
     delay(50);
     if (i == 800) delay(1000);
     motorsSpeed[i] = i;
-    writeToMotors(i);
+    writeToMotors(i, 4);
   }
   isMotorsRuning = true;
 }
@@ -43,32 +43,42 @@ void DeactivateMotors() {
   isMotorsRuning = false;
   for (int i = MIN_SPEED; i <= MOTOR_ZERO;i-=10) {
     delay(50);
-    writeToMotors(i);
+    writeToMotors(i, 4);
   }
 }
 
 void UpdateMotors() {
+  motorsSpeed[0] -= pid_pitch_out + pid_roll_out;
+  motorsSpeed[1] -= pid_pitch_out - pid_roll_out;
+  motorsSpeed[2] += pid_pitch_out + pid_roll_out;
+  motorsSpeed[3] += pid_pitch_out + pid_roll_out;
+
   if (isMotorsRuning)
   for (byte i = 0; i <= 3; i++)
   if (motorsSpeed[i] < MIN_SPEED) {
     if (isMotorsRuning) {
-    writeToMotors(MIN_SPEED);
-    } else { writeToMotors(motorsSpeed[i]); }
+    writeToMotors(MIN_SPEED, i);
+    } else { writeToMotors(motorsSpeed[i], i); }
   } else if (motorsSpeed[i] > MAX_SPEED) {
-    writeToMotors(MAX_SPEED);
+    writeToMotors(MAX_SPEED, i);
   } else {
-    writeToMotors(motorsSpeed[i]);
+    writeToMotors(motorsSpeed[i], i);
   }
 }
 
-void writeToMotors(short unsigned int speed) {
-    M1FrontLeft.writeMicroseconds(speed + pid_pitch_out);
-    M2FrontRight.writeMicroseconds(speed + pid_roll_out);
-    M3RearRight.writeMicroseconds(speed - pid_pitch_out);
-    M4RearLeft.writeMicroseconds(speed - pid_roll_out);
-    Serial.println("MOTOR1");Serial.print(speed + pid_pitch_out);
-        Serial.println("MOTOR2");Serial.print(speed + pid_roll_out);
-            Serial.println("MOTOR3");Serial.print(speed + pid_pitch_out);
-                Serial.println("MOTOR4");Serial.print(speed - pid_roll_out);
+void writeToMotors(short unsigned int speed, int motor) {
+    switch (motor) {
+    case 0: M1FrontLeft.writeMicroseconds(speed); break;
+    case 1: M2FrontRight.writeMicroseconds(speed); break;
+    case 2: M3RearRight.writeMicroseconds(speed); break;
+    case 3: M4RearLeft.writeMicroseconds(speed); break;
+    case 4: 
+    M1FrontLeft.writeMicroseconds(speed);
+    M2FrontRight.writeMicroseconds(speed);
+    M3RearRight.writeMicroseconds(speed);
+    M4RearLeft.writeMicroseconds(speed); break;
+    }
+    //Serial.println("");Serial.print(motor);Serial.print("MOTOR=(");Serial.print(speed);Serial.print(")"); Serial.println("");
+    Serial.print("roll");Serial.print(roll);Serial.print("pitch");Serial.print(pitch);Serial.print("yaw");Serial.print(yaw);
 }
 

@@ -261,6 +261,11 @@ float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor dat
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
+float rollConst = 0;
+float pitchConst = 0;
+float yawConst = 0;
+bool corrected = false;
+
 void MpuInitialize() {
   Wire.begin();
   // Set up the interrupt pin, its set as active high, push-pull
@@ -435,6 +440,18 @@ void MpuUpdate() {
       yaw   *= 180.0f / PI;
       yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
       roll  *= 180.0f / PI;
+
+      if (!corrected) {
+        rollConst = roll * -1;
+        pitchConst = pitch * -1; 
+        yawConst = yaw * -1;
+        corrected = true;
+      } else {
+        roll += rollConst;
+        pitch += pitchConst;
+        yaw += yawConst;
+      }
+      
     }
   }
   if(SerialDebug) {
