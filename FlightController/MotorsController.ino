@@ -57,10 +57,10 @@ void UpdateMotors() {
 //  motorsSpeed[1] = throttle + pid_roll_out ;//- pid_yaw_out;
 //  motorsSpeed[2] = throttle - pid_pitch_out ;//+ pid_yaw_out;
 //  motorsSpeed[3] = throttle - pid_roll_out ;//- pid_yaw_out;
-  motorsSpeed[1] = throttle - pid_pitch_out + pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 1 (front-right - CCW)
-  motorsSpeed[2] = throttle + pid_pitch_out + pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 2 (rear-right - CW)
-  motorsSpeed[3] = throttle + pid_pitch_out - pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 3 (rear-left - CCW)
-  motorsSpeed[0] = throttle - pid_pitch_out - pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 4 (front-left - CW)
+  motorsSpeed[0] = throttle - pid_pitch_out + pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 1 (front-right - CCW)
+  motorsSpeed[1] = throttle - pid_pitch_out - pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 2 (rear-right - CW)
+  motorsSpeed[2] = throttle + pid_pitch_out - pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 3 (rear-left - CCW)
+  motorsSpeed[3] = throttle + pid_pitch_out + pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 4 (front-left - CW)
 
 
   //Serial.print("ROLL=");Serial.print(pid_roll_out);Serial.print("(");Serial.print(roll);Serial.println(")");
@@ -81,10 +81,10 @@ void UpdateMotors() {
 
 void writeToMotors(short unsigned int speed, int motor) {
     switch (motor) {
-    case 0: M1FrontLeft.writeMicroseconds(speed); break;
-    case 1: M2FrontRight.writeMicroseconds(speed); break;
-    case 2: M3RearRight.writeMicroseconds(speed); break;
-    case 3: M4RearLeft.writeMicroseconds(speed); break;
+    case 2: M1FrontLeft.writeMicroseconds(speed); break;
+    case 3: M2FrontRight.writeMicroseconds(speed); break;
+    case 0: M3RearRight.writeMicroseconds(speed); break;
+    case 1: M4RearLeft.writeMicroseconds(speed); break;
     case 4: 
     M1FrontLeft.writeMicroseconds(speed);
     M2FrontRight.writeMicroseconds(speed);
