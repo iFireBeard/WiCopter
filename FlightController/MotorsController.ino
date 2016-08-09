@@ -5,7 +5,7 @@
 #define PIN_M3 6
 #define PIN_M4 9
 
-#define MAX_SPEED 1600
+#define MAX_SPEED 1250
 #define MIN_SPEED 1000
 #define MOTOR_ZERO 800 
 
@@ -48,11 +48,24 @@ void DeactivateMotors() {
 }
 
 void UpdateMotors() {
-  motorsSpeed[0] -= pid_pitch_out + pid_roll_out;
-  motorsSpeed[1] -= pid_pitch_out - pid_roll_out;
-  motorsSpeed[2] += pid_pitch_out + pid_roll_out;
-  motorsSpeed[3] += pid_pitch_out + pid_roll_out;
+  int throttle = 1100;
+//    m0 = throttle + pid_pitch_out ;//+ pid_yaw_out;
+//  m1 = throttle + pid_roll_out ;//- pid_yaw_out;
+//  m2 = throttle - pid_pitch_out ;//+ pid_yaw_out;
+//  m3 = throttle - pid_roll_out ;//- pid_yaw_out;
+//  motorsSpeed[0] = throttle + pid_pitch_out ;//+ pid_yaw_out;
+//  motorsSpeed[1] = throttle + pid_roll_out ;//- pid_yaw_out;
+//  motorsSpeed[2] = throttle - pid_pitch_out ;//+ pid_yaw_out;
+//  motorsSpeed[3] = throttle - pid_roll_out ;//- pid_yaw_out;
+  motorsSpeed[1] = throttle - pid_pitch_out + pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 1 (front-right - CCW)
+  motorsSpeed[2] = throttle + pid_pitch_out + pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 2 (rear-right - CW)
+  motorsSpeed[3] = throttle + pid_pitch_out - pid_roll_out;// - pid_output_yaw; //Calculate the pulse for esc 3 (rear-left - CCW)
+  motorsSpeed[0] = throttle - pid_pitch_out - pid_roll_out;// + pid_output_yaw; //Calculate the pulse for esc 4 (front-left - CW)
 
+
+  //Serial.print("ROLL=");Serial.print(pid_roll_out);Serial.print("(");Serial.print(roll);Serial.println(")");
+  //Serial.print("PICTH=");Serial.print(pid_pitch_out);;Serial.print("(");Serial.print(pitch);Serial.println(")");
+  
   if (isMotorsRuning)
   for (byte i = 0; i <= 3; i++)
   if (motorsSpeed[i] < MIN_SPEED) {
@@ -78,7 +91,7 @@ void writeToMotors(short unsigned int speed, int motor) {
     M3RearRight.writeMicroseconds(speed);
     M4RearLeft.writeMicroseconds(speed); break;
     }
-    //Serial.println("");Serial.print(motor);Serial.print("MOTOR=(");Serial.print(speed);Serial.print(")"); Serial.println("");
-    Serial.print("roll");Serial.print(roll);Serial.print("pitch");Serial.print(pitch);Serial.print("yaw");Serial.print(yaw);
+    Serial.println("");Serial.print(motor);Serial.print("MOTOR=(");Serial.print(speed);Serial.print(")");
+    //Serial.println("");Serial.print("roll");Serial.print(roll);Serial.print("pitch");Serial.print(pitch);Serial.print("yaw");Serial.print(yaw);
 }
 

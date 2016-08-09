@@ -261,11 +261,6 @@ float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor dat
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
-float rollConst = 0;
-float pitchConst = 0;
-float yawConst = 0;
-bool corrected = false;
-
 void MpuInitialize() {
   Wire.begin();
   // Set up the interrupt pin, its set as active high, push-pull
@@ -407,54 +402,48 @@ void MpuUpdate() {
     delt_t = millis() - count;
     if (delt_t > 500) { // update LCD once per half-second independent of read rate
 
-      if(SerialDebug) {
-      Serial.print("ax = "); Serial.print((int)1000*ax);
-      Serial.print(" ay = "); Serial.print((int)1000*ay);
-      Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
-      Serial.print("gx = "); Serial.print( gx, 2);
-      Serial.print(" gy = "); Serial.print( gy, 2);
-      Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
-      Serial.print("mx = "); Serial.print( (int)mx );
-      Serial.print(" my = "); Serial.print( (int)my );
-      Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
-  
-      Serial.print("q0 = "); Serial.print(q[0]);
-      Serial.print(" qx = "); Serial.print(q[1]);
-      Serial.print(" qy = "); Serial.print(q[2]);
-      Serial.print(" qz = "); Serial.println(q[3]);
-      }
-  
-    // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
-    // In this coordinate system, the positive z-axis is down toward Earth.
-    // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
-    // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
-    // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
-    // These arise from the definition of the homogeneous rotation matrix constructed from quaternions.
-    // Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
-    // applied in the correct order which for this configuration is yaw, pitch, and then roll.
-    // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
-      yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
-      pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-      roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
-      pitch *= 180.0f / PI;
-      yaw   *= 180.0f / PI;
-      yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
-      roll  *= 180.0f / PI;
+    if(SerialDebug) {
+    Serial.print("ax = "); Serial.print((int)1000*ax);
+    Serial.print(" ay = "); Serial.print((int)1000*ay);
+    Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
+    Serial.print("gx = "); Serial.print( gx, 2);
+    Serial.print(" gy = "); Serial.print( gy, 2);
+    Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
+    Serial.print("mx = "); Serial.print( (int)mx );
+    Serial.print(" my = "); Serial.print( (int)my );
+    Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
 
-      if (!corrected) {
-        rollConst = roll * -1;
-        pitchConst = pitch * -1; 
-        yawConst = yaw * -1;
-        corrected = true;
-      } else {
-        roll += rollConst;
-        pitch += pitchConst;
-        yaw += yawConst;
-      }
-      
+    Serial.print("q0 = "); Serial.print(q[0]);
+    Serial.print(" qx = "); Serial.print(q[1]);
+    Serial.print(" qy = "); Serial.print(q[2]);
+    Serial.print(" qz = "); Serial.println(q[3]);
     }
-  }
-  if(SerialDebug) {
+
+  // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
+  // In this coordinate system, the positive z-axis is down toward Earth.
+  // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
+  // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
+  // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
+  // These arise from the definition of the homogeneous rotation matrix constructed from quaternions.
+  // Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
+  // applied in the correct order which for this configuration is yaw, pitch, and then roll.
+  // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
+    yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+    pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
+    roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+    pitch *= 180.0f / PI;
+    yaw   *= 180.0f / PI;
+    yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+    roll  *= 180.0f / PI;
+
+    Serial.print(yaw);
+    Serial.print('_');
+    Serial.print(pitch);
+    Serial.print('_');
+    Serial.print(roll);
+    Serial.print(';');
+
+    if(SerialDebug) {
     Serial.print("Yaw, Pitch, Roll: ");
     Serial.print(yaw, 2);
     Serial.print(", ");
@@ -464,9 +453,13 @@ void MpuUpdate() {
 
     Serial.print("rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
     }
+
     count = millis();
     sumCount = 0;
     sum = 0;
+    }
+    }
+
 }
 
 

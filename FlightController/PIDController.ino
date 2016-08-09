@@ -1,28 +1,14 @@
 #include <PID_v1.h>
 
-//-------PID Config----------
-#define ROLL_PID_KP  0.250
-#define ROLL_PID_KI  0.950
-#define ROLL_PID_KD  0.011
 #define ROLL_PID_MIN  -200.0
 #define ROLL_PID_MAX  200.0
-
-#define PITCH_PID_KP  0.250
-#define PITCH_PID_KI  0.950
-#define PITCH_PID_KD  0.011
 #define PITCH_PID_MIN  -200.0
 #define PITCH_PID_MAX  200.0
-
-#define YAW_PID_KP  0.680
-#define YAW_PID_KI  0.500
-#define YAW_PID_KD  0.0001
 #define YAW_PID_MIN  100.0
 #define YAW_PID_MAX  100.0
 
-//-------------------------
-
-PID roll_controller(&pid_roll_in,   &pid_roll_out,  &pid_roll_setpoint,  5.0, 0.0, 0.0, REVERSE);
-PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, 5.0, 0.0, 0.0, REVERSE);
+PID roll_controller(&pid_roll_in,   &pid_roll_out,  &pid_roll_setpoint,  1.0, 0.0, 0.0, DIRECT);
+PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, 1.0, 0.0, 0.0, DIRECT);
 PID yaw_controller(&pid_yaw_in,     &pid_yaw_out,   &pid_yaw_setpoint,   1.0, 0.0, 0.0, DIRECT); 
 
 
@@ -36,6 +22,13 @@ void pid_initialize() {
   roll_controller.SetSampleTime(10);
   pitch_controller.SetSampleTime(10);
   yaw_controller.SetSampleTime(10);
+}
+
+void roll_tuning(double tkP, double tkI, double tkD) {
+  roll_controller.SetTunings(tkP,tkI,tkD);
+}
+void pitch_tuning(double tkP, double tkI, double tkD) {
+  pitch_controller.SetTunings(tkP,tkI,tkD);
 }
 
 void pid_update(){
